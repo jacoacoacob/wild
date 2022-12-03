@@ -1,0 +1,15 @@
+version: '3.9'
+
+services:
+  database:
+    image: postgres
+    environment:
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - ./data:/var/lib/postgresql/data
+  sqitch:
+    image: sqitch/sqitch
+    volumes:
+      - ./src:/repo
+      - ./config:/home
+
