@@ -1,0 +1,5 @@
+%syntax-version=1.0.0
+%project=fmc-db
+%uri=https://gitlab.com/jacoacoacob/fmc-db
+
+appschema 2022-12-03T22:22:33Z Jacoacoacob <jacoacoacob@protonmail.com> # Add schema for all fmc objects
