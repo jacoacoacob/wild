@@ -1,4 +1,4 @@
--- Deploy fmc-db:appschema to pg
+-- Deploy fmc-db:1-create-schema-fmc to pg
 
 BEGIN;
 

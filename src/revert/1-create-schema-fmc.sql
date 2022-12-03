@@ -1,4 +1,4 @@
--- Revert fmc-db:appschema from pg
+-- Revert fmc-db:1-create-schema-fmc from pg
 
 BEGIN;
 

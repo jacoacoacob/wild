@@ -1,4 +1,4 @@
--- Verify fmc-db:appschema on pg
+-- Verify fmc-db:1-create-schema-fmc on pg
 
 BEGIN;
 
