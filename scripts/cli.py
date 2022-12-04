@@ -9,7 +9,7 @@ import psycopg2
 
 import argparse
 
-from . import retr
+from . import retr, queries
 
 dotenv.load_dotenv()
 
@@ -33,5 +33,5 @@ dotenv.load_dotenv()
 
 
 def run():
-  result = retr.query_recorded_months()
+  result = queries.select_conveyance_codes()
   print(result)

@@ -3,14 +3,12 @@ import functools
 from typing import Literal
 
 import psycopg2
+from psycopg2.extras import RealDictCursor, RealDictRow
 
 
 def unpack_sql_and_params(*args):
   if type(args[0]) is tuple:
     args, = args
-  # print(args)
-  # if type(args) is tuple:
-  #   args, = args
   if len(args) == 1:
     return args[0], []
   if len(args) == 2:
@@ -33,7 +31,7 @@ def execute(fetch: Literal["one", "all", None] = None):
       result = None
       try:
         with conn:
-          with conn.cursor() as cursor:
+          with conn.cursor(cursor_factory=RealDictCursor) as cursor:
             sql, params = unpack_sql_and_params(func(*args, **kwargs))
             cursor.execute(sql, params)
             if fetch == "one":
@@ -41,9 +39,12 @@ def execute(fetch: Literal["one", "all", None] = None):
             if fetch == "all":
               result = cursor.fetchall()
       except Exception as exc:
-        print(f"[database::transaction] {type(exc).__name__}:", exc)
+        print(f"[db::execute] {type(exc).__name__}:", exc)
       finally:
         conn.close()
-        return result
+        if type(result) is RealDictRow:
+          return dict(result)
+        if type(result) is list:
+          return [dict(record) for record in result]
     return wrapper
   return decorator

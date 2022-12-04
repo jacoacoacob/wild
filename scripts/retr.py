@@ -10,7 +10,7 @@ from typing import List
 import dotenv
 import requests
 
-from . import database
+from . import queries
 
 dotenv.load_dotenv()
 
@@ -40,15 +40,6 @@ def extract_months_from_links(links: List[str]):
     in links
   ]
 
-
-@database.execute(fetch="one")
-def query_recorded_months():
-  """
-  Query fmc.retr to derive which months for which we already have RETR data.
-  """
-  sql = "SELECT NOW()"
-  return sql
-  
 
 def main():
   pass
