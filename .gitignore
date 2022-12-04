@@ -1,7 +1,11 @@
 config
 data
 
+sandbox*
+
 .env
 
 .vscode
 .DS_Store
+
+__pycache__

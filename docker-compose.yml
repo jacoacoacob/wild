@@ -7,9 +7,11 @@ services:
       - POSTGRES_PASSWORD=postgres
     volumes:
       - ./data:/var/lib/postgresql/data
+    ports:
+      - 5436:5432
   sqitch:
     image: sqitch/sqitch
     volumes:
-      - ./src:/repo
+      - ./schema:/repo
       - ./config:/home
 
