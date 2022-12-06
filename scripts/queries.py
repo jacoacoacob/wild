@@ -3,8 +3,7 @@ from .lib import execute
 
 
 @execute(fetch="one")
-def select_now(*args, **kwargs):
-  print(kwargs)
+def ping(*args, **kwargs):
   return "SELECT NOW() as now"
 
 

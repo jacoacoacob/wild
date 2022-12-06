@@ -1,14 +1,10 @@
 
 import os
 import functools
-from argparse import ArgumentParser
 from typing import Literal
 
-import dotenv
 import psycopg2
 from psycopg2.extras import RealDictRow, RealDictCursor
-
-dotenv.load_dotenv()
 
 
 def unpack_sql_and_params(*args):
@@ -53,36 +49,3 @@ def execute(fetch: Literal["one", "all", None] = None):
           return [dict(record) for record in result]
     return wrapper
   return decorator
-
-
-class Cli:
-  def __init__(self, name="", commands_description=""):
-    self.parser = ArgumentParser(name)
-    self.subparsers = self.parser.add_subparsers(
-      title="Commands",
-      description=commands_description
-    )
-
-  def add_command(self, name, help_text="", execute=None, arguments=[]):
-    parser = self.subparsers.add_parser(
-      name,
-      description=help_text,
-      help=help_text
-    )
-    for args in arguments:
-      args, kwargs = args
-      parser.add_argument(*args, **kwargs)
-    parser.add_argument("-v", "--verbose", action="store_true")
-    parser.set_defaults(func=execute)
-    return parser
-
-  def run(self):
-    command = self.parser.parse_args().__dict__
-    execute = command.pop("func", None)
-    if execute:
-      result = execute(**command)
-      if command.get("verbose"):
-        print(result)
-    else:
-      self.parser.print_help()
-  
