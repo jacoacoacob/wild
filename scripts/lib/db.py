@@ -17,7 +17,7 @@ def unpack_sql_and_params(*args):
   raise ValueError("Expected list of 1 or 2 elements")
 
 
-def execute(fetch: Literal["one", "all", None] = None):
+def query(fetch: Literal["one", "all", None] = None):
   """
   This decorator will execute SQL text and params returned as a tuple from
   the function it wraps.

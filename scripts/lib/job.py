@@ -32,3 +32,6 @@ class Job:
     fh.setFormatter(formatter)
     self.logger.addHandler(ch)
     self.logger.addHandler(fh)
+
+  def execute(self, *args, **kwargs):
+    raise NotImplemented
