@@ -75,16 +75,31 @@ ENCODINGS = [
 
 
 class SyncRetr(Job):
+  def __init__(self, job_id=None, verbose=0) -> None:
+    super().__init__(job_id, verbose)
+    zip_loc, raw_loc, clean_loc = [
+      os.path.join(self.artifacts_path, dirname)
+      for dirname
+      in ("zip", "raw", "clean")
+    ]
+    if not job_id:
+      for location in [zip_loc, raw_loc, clean_loc]:
+        os.mkdir(location)
+    self.zip_loc = zip_loc
+    self.raw_loc = raw_loc
+    self.clean_loc = clean_loc
+
   def execute(self, *args, **kwargs):
     # available_links = self.fetch_available_links()
     # months_to_fetch = self.get_months_to_fetch(available_links)
-    months_to_fetch = [
-      {
-        'date': '202201',
-        'link': 'https://www.revenue.wi.gov/SLFReportsHistSales/202201CSV.zip'
-      }
-    ]
-    self.download_csv_zip_files(months_to_fetch)
+    # months_to_fetch = [
+    #   {
+    #     'date': '202201',
+    #     'link': 'https://www.revenue.wi.gov/SLFReportsHistSales/202201CSV.zip'
+    #   }
+    # ]
+    # self.download_csv_zip_files(months_to_fetch)
+    self.unzip_csv_zip_files()
 
   @auto_log
   @query(fetch="all")
@@ -134,10 +149,10 @@ class SyncRetr(Job):
   @auto_log
   def download_csv_zip_files(self, available_months):
     for month in available_months:
-      link = month.get("links")
+      link = month.get("link")
       self.logger.debug(f"Fetching {link}")
       response = requests.get(link)
-      out_path = os.path.join(self.artifacts_path, month.get("date"))
+      out_path = os.path.join(self.zip_loc, month.get("date"))
       self.logger.debug(f"Opening {out_path}.zip")
       with open(out_path + ".zip", "wb") as zip_file:
         self.logger.debug(f"Writing {out_path}.zip")
@@ -145,7 +160,17 @@ class SyncRetr(Job):
 
   @auto_log
   def unzip_csv_zip_files(self):
-    pass
-
-
-
+    for file_name in os.listdir(self.zip_loc):
+      with zipfile.ZipFile(os.path.join(self.zip_loc, file_name)) as zip_ref:
+        # So this we coulllld just do `zip_ref.exractall(self.raw_loc)` here
+        # but given that we don't really have control over the zip archive origin,
+        # I thinnnnk doing what we're doing below (doing some kind of filename 
+        # validation before extraction) is what the docs recommend...
+        # https://docs.python.org/3/library/zipfile.html?highlight=zipfile#zipfile.ZipFile.extractall
+        for archive_member in zip_ref.namelist():
+          if archive_member.startswith(file_name[:6]):
+            zip_ref.extract(archive_member, self.raw_loc)
+          else:
+            self.logger.warn(
+              f"Detected suspicious zip archive member {archive_member}. Extraction not attempted."
+            )

@@ -44,15 +44,16 @@ def auto_log(func):
       set_formatter(job.logger, job_log_formatter)
       return result
   return wrapper
-    
+
 
 class Job:
-  def __init__(self, verbose=0) -> None:
-    self.job_id = datetime.utcnow().strftime("%Y%m%d%H%M%S")
+  def __init__(self, job_id=None, verbose=0) -> None:
+    self.job_id = job_id or datetime.utcnow().strftime("%Y%m%d%H%M%S")
     self.artifacts_path = os.path.abspath(
       os.path.join(JOB_ARTIFACTS_ROOT, self.job_id)
     )
-    os.makedirs(self.artifacts_path)
+    if not job_id:
+      os.makedirs(self.artifacts_path)  
     self.logger = logging.getLogger(self.job_id)
     self.logger.setLevel(logging.DEBUG)
     ch = logging.StreamHandler()
