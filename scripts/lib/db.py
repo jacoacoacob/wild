@@ -17,6 +17,13 @@ def unpack_sql_and_params(*args):
   raise ValueError("Expected list of 1 or 2 elements")
 
 
+def get_database_url():
+  DATABASE_URL = os.getenv("DATABASE_URL")
+  if not DATABASE_URL:
+    raise Exception("DATABASE_URL envionment variable not found.")
+  return DATABASE_URL
+
+
 def query(fetch: Literal["one", "all", None] = None):
   """
   This decorator will execute SQL text and params returned as a tuple from
@@ -26,10 +33,7 @@ def query(fetch: Literal["one", "all", None] = None):
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
       try:
-        DATABASE_URL = os.getenv("DATABASE_URL")
-        if not DATABASE_URL:
-          raise Exception("DATABASE_URL envionment variable not found.")
-        conn = psycopg2.connect(DATABASE_URL)
+        conn = psycopg2.connect(get_database_url())
         result = None
         with conn:
           with conn.cursor(cursor_factory=RealDictCursor) as cursor:
@@ -49,3 +53,15 @@ def query(fetch: Literal["one", "all", None] = None):
           return [dict(record) for record in result]
     return wrapper
   return decorator
+
+
+def copy_csv_to_table(file, table):
+  try:
+    with psycopg2.connect(get_database_url()) as conn:
+      with conn.cursor() as cursor:
+        cursor.copy_expert(f"COPY {table} FROM STDIN WITH (FORMAT CSV, HEADER)", file)
+    conn.close()
+    return True
+  except Exception as exc:
+    conn.close()
+    raise exc

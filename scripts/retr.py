@@ -3,75 +3,39 @@ This module contains code to download, clean, and copy Real Estate Transfer
 Return data (https://www.revenue.wi.gov/Pages/ERETR/data-home.aspx) to a 
 postgres database.
 """
-import re
-import os
 import csv
+import os
+import re
 import zipfile
+from datetime import datetime
 
 import dotenv
 import requests
 
-from .lib import Job, auto_log, query
+from .lib import Job, auto_log, query, copy_csv_to_table
 
 dotenv.load_dotenv()
 
-ENCODINGS = [
-  "ascii",
-  "big5",
-  "big5hkscs",
-  "cp037",
-  "cp273",
-  "cp424",
-  "cp437",
-  "cp500",
-  "cp720",
-  "cp737",
-  "cp775",
-  "cp850",
-  "cp852",
-  "cp855",
-  "cp856",
-  "cp857",
-  "cp858",
-  "cp860",
-  "cp861",
-  "cp862",
-  "cp863",
-  "cp864",
-  "cp865",
-  "cp866",
-  "cp869",
-  "cp874",
-  "cp875",
-  "cp932",
-  "cp949",
-  "cp950",
-  "cp1006",
-  "cp1026",
-  "cp1125",
-  "cp1040",
-  "cp1250",
-  "cp1251",
-  "cp1252",
-  "cp1253",
-  "cp1254",
-  "cp1255",
-  "cp1256",
-  "cp1257",
-  "cp1258",
-  "latin_1",
-  "iso8859_15",
-  "mac_roman",
-  "utf_32",
-  "utf_32_be",
-  "utf_32_le",
-  "utf_16",
-  "utf_16_be",
-  "utf_16_le",
-  "utf_7",
-  "utf_8",
-  "utf_8_sig",
-]
+
+def retr_date_to_postgres_date(row, column, row_number, logger):
+  value = row.get(column)
+  if value:
+    try:
+      d = value.zfill(8)
+      d = datetime.strptime(d, "%m%d%Y")
+      d = datetime.strftime(d, "%Y-%m-%d")
+      return d
+    except Exception as exc:
+      logger.warn(f"{column} {row_number} {type(exc)} {exc}")
+  
+
+def numeric_value(row, column, row_number, logger):
+  value = row.get(column)
+  if value:
+    try:
+      return re.sub(r"[^\d\.]", "", value)
+    except Exception as exc:
+      logger.warn(f"{column} {row_number} {type(exc)} {exc}")
 
 
 class SyncRetr(Job):
@@ -92,19 +56,22 @@ class SyncRetr(Job):
   def execute(self, *args, **kwargs):
     # available_links = self.fetch_available_links()
     # months_to_fetch = self.get_months_to_fetch(available_links)
-    # months_to_fetch = [
-    #   {
-    #     'date': '202201',
-    #     'link': 'https://www.revenue.wi.gov/SLFReportsHistSales/202201CSV.zip'
-    #   }
-    # ]
     # self.download_csv_zip_files(months_to_fetch)
-    self.unzip_csv_zip_files()
+    # self.unpack_csv_data()
+    self.clean_csv_data()
+    self.copy_cleaned_data_to_database()
 
   @auto_log
   @query(fetch="all")
   def select_stored_months(self):
-    return "SELECT DISTINCT date_recorded FROM fmc.retr"
+    return """
+      SELECT
+        DISTINCT
+          DATE_PART('year', date_recorded)::TEXT ||
+          LPAD(DATE_PART('month', date_recorded)::TEXT, 2, '0')
+      FROM
+        fmc.retr
+    """
 
   @auto_log
   def get_available_months(self, available_links):
@@ -150,16 +117,16 @@ class SyncRetr(Job):
   def download_csv_zip_files(self, available_months):
     for month in available_months:
       link = month.get("link")
-      self.logger.debug(f"Fetching {link}")
+      self.logger.info(f"Fetching {link}")
       response = requests.get(link)
+      self.logger.debug({ "response_status_code": response.status_code })
       out_path = os.path.join(self.zip_loc, month.get("date"))
-      self.logger.debug(f"Opening {out_path}.zip")
-      with open(out_path + ".zip", "wb") as zip_file:
-        self.logger.debug(f"Writing {out_path}.zip")
-        zip_file.write(response.content)
+      self.logger.info(f"Saving response to {out_path}.zip")
+      with open(out_path + ".zip", "wb") as out:
+        out.write(response.content)
 
   @auto_log
-  def unzip_csv_zip_files(self):
+  def unpack_csv_data(self):
     for file_name in os.listdir(self.zip_loc):
       with zipfile.ZipFile(os.path.join(self.zip_loc, file_name)) as zip_ref:
         # So this we coulllld just do `zip_ref.exractall(self.raw_loc)` here
@@ -172,5 +139,62 @@ class SyncRetr(Job):
             zip_ref.extract(archive_member, self.raw_loc)
           else:
             self.logger.warn(
-              f"Detected suspicious zip archive member {archive_member}. Extraction not attempted."
+              f"Detected suspicious zip archive member '{archive_member}'. Extraction from zip arcive not attempted."
             )
+
+  @auto_log
+  def clean_csv_data(self):
+    for file in os.listdir(self.raw_loc)[:5]:
+      try:
+        in_file_path = os.path.join(self.raw_loc, file)
+        out_file_path = os.path.join(self.clean_loc, file)
+        with open(in_file_path, "r", encoding="cp1250", newline="") as in_file:
+          with open(out_file_path, "w") as out_file:
+            reader = csv.DictReader(in_file)
+            writer = csv.DictWriter(
+              out_file,
+              fieldnames=[name for name in reader.fieldnames if len(name.strip()) > 0]
+            )
+            self.logger.info(f"Writing {out_file.name}")
+            writer.writeheader()
+            for index, row in enumerate(reader):
+              writer.writerow({
+                **{
+                  col: row[col].strip()
+                  for col
+                  in row if len(col) > 0 
+                },
+                **{
+                  col: numeric_value(row, col, index + 1, self.logger)
+                  for col
+                  in [
+                    "MultiGrantors"
+                  ]
+                },
+                **{
+                  col: retr_date_to_postgres_date(row, col, index + 1, self.logger)
+                  for col
+                  in [
+                    "CertificationDate",
+                    "DateConveyed",
+                    "DateRecorded",
+                    "DeedDate",
+                    "GranteeCertificationDate",
+                  ]
+                }
+              })
+            self.logger.info(f"Write complete")
+      except Exception as exc:
+        self.logger.warn(f"{type(exc)} {exc}")
+
+  @auto_log
+  def copy_cleaned_data_to_database(self):
+    for file_name in os.listdir(self.clean_loc)[:5]:
+      try:
+        # cp1250 is encoding used by Windows https://docs.python.org/3.10/library/codecs.html
+        with open(os.path.join(self.clean_loc, file_name), "r", encoding="cp1250") as file:
+          self.logger.info(f"Copying {file_name} to database")
+          copy_csv_to_table(file, "fmc.retr")
+          self.logger.info(f"Copy complete")
+      except Exception as exc:
+        self.logger.warn(f"{type(exc)} {exc}")

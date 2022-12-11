@@ -17,11 +17,7 @@ def cli():
           logged stdout. Choose 1 to log messages level INFO and above 
           to stdout. Choose 2 to log all messages to stdout."""
 )
-@click.option(
-  "--job-id",
-  help="If provided, `sync_retr` will re-run the job"
-)
+@click.option("--job-id")
 def sync_retr(verbose, job_id):
-  # job = retr.SyncRetr(verbose=verbose, job_id="20221211002045")
   job = retr.SyncRetr(verbose=verbose, job_id=job_id)
   job.execute()

@@ -32,9 +32,9 @@ CREATE TABLE IF NOT EXISTS fmc.retr (
     transfer_exemption_number TEXT,
     financing_code SMALLINT,
     document_number TEXT,
-    date_recorded DATE,
-    date_conveyed DATE,
-    deed_date DATE,
+    date_recorded TIMESTAMP,
+    date_conveyed TIMESTAMP,
+    deed_date TIMESTAMP,
     conveyance_code SMALLINT,
     parcel_identification TEXT, -- (Municipal Parcel Number) LET'S GO!
     multi_grantors SMALLINT DEFAULT 2, -- yn
@@ -45,7 +45,7 @@ CREATE TABLE IF NOT EXISTS fmc.retr (
     grantor_city TEXT,
     grantor_state TEXT,
     grantor_zip TEXT,
-    certification_date DATE,
+    certification_date TIMESTAMP,
     multi_grantees SMALLINT DEFAULT 2, -- yn
     grantee_last_name TEXT,
     grantee_first_name TEXT,
@@ -54,7 +54,7 @@ CREATE TABLE IF NOT EXISTS fmc.retr (
     grantee_city TEXT,
     grantee_state TEXT,
     grantee_zip TEXT,
-    grantee_certification_date DATE,
+    grantee_certification_date TIMESTAMP,
     grantee_primary_residence SMALLINT DEFAULT 2, -- yn
     tax_bill_grantee SMALLINT DEFAULT 2, -- yn
     city_yn SMALLINT DEFAULT 2, -- yn
