@@ -1,16 +1,11 @@
 import click
 
-from . import queries, retr
+from . import retr
 
 
 @click.group()
 def cli():
   pass
-
-
-@cli.command()
-def ping(*args, **kwargs):
-  print(queries.ping(*args, **kwargs))
 
 
 @cli.command()
@@ -25,4 +20,3 @@ def ping(*args, **kwargs):
 def sync_retr(verbose):
   job = retr.SyncRetr(verbose)
   job.execute()
-
