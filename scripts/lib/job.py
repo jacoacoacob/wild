@@ -13,7 +13,7 @@ JOB_ARTIFACTS_ROOT = os.getenv("JOB_ARTIFACTS_ROOT", "jobs")
 JOB_VERBOSITY_TO_LOG_LEVEL = [logging.WARNING, logging.INFO, logging.DEBUG]
 
 
-auto_log_formatter = logging.Formatter(
+stage_log_formatter = logging.Formatter(
   "%(levelname)s %(asctime)s %(message)s",
   datefmt="%Y-%m-%d %H:%M:%S"
 )
@@ -28,19 +28,19 @@ def set_formatter(logger, formatter):
     handler.setFormatter(formatter)
 
 
-def auto_log(func):
+def stage(func):
   @functools.wraps(func)
   def wrapper(*args, **kwargs):
     if isinstance(args[0], Job):
       job = args[0]
-      set_formatter(job.logger, auto_log_formatter)
-      job.logger.info(f"[auto_log] Starting {func.__name__}")
-      job.logger.debug(f"[auto_log] {dict(func_name=func.__name__, args=args, kwargs=kwargs)}")
+      set_formatter(job.logger, stage_log_formatter)
+      job.logger.info(f"[stage::{func.__name__}] Begin")
+      job.logger.debug(f"[stage::{func.__name__}] {dict(args=args, kwargs=kwargs)}")
       set_formatter(job.logger, job_log_formatter)
       result = func(*args, **kwargs)
-      set_formatter(job.logger, auto_log_formatter)
-      job.logger.info(f"[auto_log] Finished {func.__name__}")
-      job.logger.debug(f"[auto_log] {dict(func_name=func.__name__, result=result)}")
+      set_formatter(job.logger, stage_log_formatter)
+      job.logger.info(f"[stage::{func.__name__}] End")
+      job.logger.debug(f"[stage::{func.__name__}] {dict(result=result)}")
       set_formatter(job.logger, job_log_formatter)
       return result
   return wrapper
