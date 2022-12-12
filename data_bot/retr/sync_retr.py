@@ -29,9 +29,9 @@ class SyncRetr(Job):
     self.clean_loc = clean_loc
 
   def execute(self, *args, **kwargs):
-    self.download_csv_zip_files()
-    self.unpack_csv_data()
-    self.clean_csv_data()
+    # self.download_csv_zip_files()
+    # self.unpack_csv_data()
+    # self.clean_csv_data()
     self.copy_cleaned_data_to_database()
 
   @stage

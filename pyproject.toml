@@ -1,11 +1,11 @@
 [tool.poetry]
-name = "fmc-db"
+name = "WILD"
 version = "0.1.0"
-description = ""
+description = "WI Landlord Database"
 authors = ["jacoacoacob <jacoacoacob@protonmail.com>"]
 readme = "README.md"
 packages = [
-  { include = "scripts" }
+  { include = "data_bot" }
 ]
 
 [tool.poetry.dependencies]
@@ -16,8 +16,7 @@ psycopg2 = "^2.9.5"
 click = "^8.1.3"
 
 [tool.poetry.scripts]
-"cli" = "scripts.cli:cli"
-
+"cli" = "data_bot.cli:cli"
 
 [build-system]
 requires = ["poetry-core"]
