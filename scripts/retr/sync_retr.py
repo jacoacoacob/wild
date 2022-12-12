@@ -7,7 +7,7 @@ import os
 
 import dotenv
 
-from ..lib import Job, auto_log
+from ..lib import Job, stage
 from . import utils as retr_utils
 
 dotenv.load_dotenv()
@@ -34,12 +34,12 @@ class SyncRetr(Job):
     self.clean_csv_data()
     self.copy_cleaned_data_to_database()
 
-  @auto_log
+  @stage
   def download_csv_zip_files(self):
     for url in retr_utils.get_urls_to_fetch(self):
       retr_utils.download_retr_csv_zip(self, url, self.zip_loc)
 
-  @auto_log
+  @stage
   def unpack_csv_data(self):
     for filename in os.listdir(self.zip_loc):
       retr_utils.unpack_retr_csv(
@@ -49,12 +49,12 @@ class SyncRetr(Job):
         unpack_loc=self.raw_loc
       )
 
-  @auto_log
+  @stage
   def clean_csv_data(self):
     for file in os.listdir(self.raw_loc):
       retr_utils.clean_retr_csv(self, file, self.raw_loc, self.clean_loc)
 
-  @auto_log
+  @stage
   def copy_cleaned_data_to_database(self):
     for filename in os.listdir(self.clean_loc):
       retr_utils.copy_retr_csv_to_database_table(

@@ -16,3 +16,5 @@ services:
       - ./schema:/repo
       - ./config:/home
 
+volumes:
+  fmc_db_data:
