@@ -24,7 +24,7 @@ def get_database_url():
   return DATABASE_URL
 
 
-def query(fetch: Literal["one", "all", None] = None):
+def query(fetch: Literal["one", "all", None] = None, use_dict_cursor = True):
   """
   This decorator will execute SQL text and params returned as a tuple from
   the function it wraps.
@@ -36,7 +36,7 @@ def query(fetch: Literal["one", "all", None] = None):
         conn = psycopg2.connect(get_database_url())
         result = None
         with conn:
-          with conn.cursor(cursor_factory=RealDictCursor) as cursor:
+          with conn.cursor(cursor_factory=RealDictCursor if use_dict_cursor else None) as cursor:
             sql, params = unpack_sql_and_params(func(*args, **kwargs))
             cursor.execute(sql, params)
             if fetch == "one":
@@ -47,10 +47,13 @@ def query(fetch: Literal["one", "all", None] = None):
         print(f"[db::execute] {type(exc).__name__}:", exc)
       finally:
         conn.close()
-        if type(result) is RealDictRow:
-          return dict(result)
-        if type(result) is list:
-          return [dict(record) for record in result]
+        if use_dict_cursor:
+          if type(result) is RealDictRow:
+            return dict(result)
+          if type(result) is list:
+            return [dict(record) for record in result]
+        else:
+          return result
     return wrapper
   return decorator
 

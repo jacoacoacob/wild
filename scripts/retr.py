@@ -29,15 +29,6 @@ def retr_date_to_postgres_date(row, column, row_number, logger):
       logger.warn(f"{column} {row_number} {type(exc)} {exc}")
   
 
-def numeric_value(row, column, row_number, logger):
-  value = row.get(column)
-  if value:
-    try:
-      return re.sub(r"[^\d\.]", "", value)
-    except Exception as exc:
-      logger.warn(f"{column} {row_number} {type(exc)} {exc}")
-
-
 class SyncRetr(Job):
   def __init__(self, job_id=None, verbose=0) -> None:
     super().__init__(job_id, verbose)
@@ -54,21 +45,21 @@ class SyncRetr(Job):
     self.clean_loc = clean_loc
 
   def execute(self, *args, **kwargs):
-    # available_links = self.fetch_available_links()
-    # months_to_fetch = self.get_months_to_fetch(available_links)
-    # self.download_csv_zip_files(months_to_fetch)
-    # self.unpack_csv_data()
+    available_links = self.fetch_available_links()
+    months_to_fetch = self.get_months_to_fetch(available_links)
+    self.download_csv_zip_files(months_to_fetch)
+    self.unpack_csv_data()
     self.clean_csv_data()
     self.copy_cleaned_data_to_database()
 
   @auto_log
   @query(fetch="all")
-  def select_stored_months(self):
+  def select_dates_recorded(self):
     return """
       SELECT
         DISTINCT
           DATE_PART('year', date_recorded)::TEXT ||
-          LPAD(DATE_PART('month', date_recorded)::TEXT, 2, '0')
+          LPAD(DATE_PART('month', date_recorded)::TEXT, 2, '0') AS date_recorded
       FROM
         fmc.retr
     """
@@ -84,7 +75,11 @@ class SyncRetr(Job):
   @auto_log
   def get_months_to_fetch(self, available_links):
     available_months = self.get_available_months(available_links)
-    stored_months = self.select_stored_months()
+    stored_months = [
+      row.get("date_recorded")
+      for row
+      in self.select_dates_recorded()
+    ]
     return [
       month
       for month
@@ -165,13 +160,6 @@ class SyncRetr(Job):
                   in row if len(col) > 0 
                 },
                 **{
-                  col: numeric_value(row, col, index + 1, self.logger)
-                  for col
-                  in [
-                    "MultiGrantors"
-                  ]
-                },
-                **{
                   col: retr_date_to_postgres_date(row, col, index + 1, self.logger)
                   for col
                   in [
@@ -198,3 +186,8 @@ class SyncRetr(Job):
           self.logger.info(f"Copy complete")
       except Exception as exc:
         self.logger.warn(f"{type(exc)} {exc}")
+
+
+
+# class DownloadFile(Job):
+  # def 
