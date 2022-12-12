@@ -17,7 +17,7 @@ Prerequisites:
 - [Docker and Docker Compose](https://docs.docker.com/get-docker/)
 
 
-From the project root, execute the following commands to setup a postgres database
+From the project root, execute the following commands to setup a postgres database, and download/clean/copy WI Real Estate Transaction Return (RETR) data into it.
 
 1. Spin up a postgres docker container
     ```
@@ -29,7 +29,7 @@ From the project root, execute the following commands to setup a postgres databa
     $ docker compose run --rm sqitch deploy
     ```
 
-3. Connect to our database as *postgres* and setup a user for DataBot to connect with
+3. Connect to our database as *postgres* and setup a user for [`data_bot`](#using-data_bot) to connect with
     ```
     $ docker compose exec database psql -U postgres
 
@@ -52,7 +52,7 @@ From the project root, execute the following commands to setup a postgres databa
 
 6. Kick off a job to download a bunch of zip archives, extract CSVs from them, transform some data in those CSVs and then copy those CSVs into our postgres database (this will take a while the first time you run it)
     ```
-    $ poetry run cli sync-retr --verbose 1
+    $ poetry run data_bot sync-retr --verbose 1
     ```
 
 When that's done, you can connect to the database and start poking around!
@@ -83,3 +83,17 @@ When that's done, you can connect to the database and start poking around!
 
 ## Using `data_bot`
 
+`data_bot` is a CLI (written with [`click`](https://click.palletsprojects.com/)) that provides commands to get data from places into places. Assuming you've followed the steps 1-5 outlined in the [quick start](#quick-start), refer to the built-in CLI documentation by running:
+```
+poetry run data_bot                                    
+Usage: data_bot [OPTIONS] COMMAND [ARGS]...
+
+Options:
+  --help  Show this message and exit.
+
+Commands:
+  sync-retr
+```
+
+
+### Commands
