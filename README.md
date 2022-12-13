@@ -52,7 +52,7 @@ From the project root, execute the following commands to setup a postgres databa
 
 6. Kick off a job to download a bunch of zip archives, extract CSVs from them, transform some data in those CSVs and then copy those CSVs into our postgres database (this will take a while the first time you run it)
     ```
-    $ poetry run data_bot sync-retr --verbose 1
+    $ poetry run data_bot retr sync --verbose 1
     ```
 
 When that's done, you can connect to the database and start poking around!
