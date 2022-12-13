@@ -14,14 +14,14 @@ dotenv.load_dotenv()
   
 
 class SyncRetr(Job):
-  def __init__(self, job_id=None, verbose=0) -> None:
-    super().__init__(job_id, verbose)
+  def __init__(self, rerun_job_id=None, verbose=0) -> None:
+    super().__init__(rerun_job_id, verbose)
     zip_loc, raw_loc, clean_loc = [
       os.path.join(self.artifacts_path, dirname)
       for dirname
       in ("zip", "raw", "clean")
     ]
-    if not job_id:
+    if not rerun_job_id:
       for location in [zip_loc, raw_loc, clean_loc]:
         os.mkdir(location)
     self.zip_loc = zip_loc

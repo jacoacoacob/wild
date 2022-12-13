@@ -47,12 +47,12 @@ def stage(func):
 
 
 class Job:
-  def __init__(self, job_id=None, verbose=0) -> None:
-    self.job_id = job_id or datetime.utcnow().strftime("%Y%m%d%H%M%S")
+  def __init__(self, rerun_job_id=None, verbose=0) -> None:
+    self.job_id = rerun_job_id or datetime.utcnow().strftime("%Y%m%d%H%M%S")
     self.artifacts_path = os.path.abspath(
       os.path.join(JOB_ARTIFACTS_ROOT, self.job_id)
     )
-    if not job_id:
+    if not rerun_job_id:
       os.makedirs(self.artifacts_path)  
     self.logger = logging.getLogger(self.job_id)
     self.logger.setLevel(logging.DEBUG)

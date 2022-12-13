@@ -2,8 +2,8 @@
 
 WILD aspires to spotlight legal, temporal, and geographic relationships between residential rental property owners/managers and the properties they control. 
 The code in this repository is responsible for two broad tasks:
-1. Defining and managing changes to the structure of our PostgreSQL database that hosts WILD data and makes it queryable.
-2. Automating the work of downloading, cleaning, and putting data from various sources into our PostgreSQL database.
+1. Defining and managing changes to the structure of our [PostgreSQL](https://www.postgresql.org/docs/14/index.html) ("postgres" for short) database that hosts WILD data and makes it queryable.
+2. Automating the work of downloading, cleaning, and putting data from various sources into our postgres database.
 
 - [Quick Start](#quick-start)
 - [Project structure](#project-structure)
@@ -85,7 +85,10 @@ When that's done, you can connect to the database and start poking around!
 
 `data_bot` is a CLI (written with [`click`](https://click.palletsprojects.com/)) that provides commands to get data from places into places. Assuming you've followed the steps 1-5 outlined in the [quick start](#quick-start), refer to the built-in CLI documentation by running:
 ```
-poetry run data_bot                                    
+$ poetry run data_bot
+```
+You'll see output like:
+```                                
 Usage: data_bot [OPTIONS] COMMAND [ARGS]...
 
 Options:
@@ -94,6 +97,3 @@ Options:
 Commands:
   sync-retr
 ```
-
-
-### Commands
