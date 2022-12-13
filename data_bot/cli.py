@@ -1,6 +1,8 @@
+import re
+
 import click
 
-from . import retr
+from .retr import SyncRetr
 
 
 @click.group()
@@ -11,22 +13,26 @@ def cli():
 @cli.group()
 def retr():
   """
-  Commands for interacting with Real Estate Transaction Return (RETR) data
+  Real Estate Transfer Return (RETR) data commands.
   """
+
+
+VERBOSE_OPTION_KWARGS = {
+  "default": 0,
+  "type": int,
+  "help": """By default, all messages level WARNING and above will be 
+          logged to stdout. Choose 1 to log messages level INFO and above
+          to stdout. Choose 2 to log all messages level DEBUG and above
+          (all messages) to stdout."""
+}
 
 
 @retr.command()
-@click.option(
-  "--verbose",
-  default=0,
-  type=int,
-  help="""By default, all messages level WARNING and above will be 
-          logged to stdout. Choose 1 to log messages level INFO and above 
-          to stdout. Choose 2 to log all messages level DEBUG and above
-          (all messages) to stdout."""
-)
-def sync(verbose, job_id):
+@click.option("-v", "--verbose", **VERBOSE_OPTION_KWARGS)
+def sync(verbose):
   """
+  Synchronize the database with available RETR data.
+
   This command checks the months for which RETR data is available and
   downloads, cleans, and copies into the database the data for those months
   which aren't already stored in the database.
@@ -40,5 +46,43 @@ def sync(verbose, job_id):
   will be output to the path JOB_ARTIFACTS_ROOT/<job_id> where `<job_id>` is
   a the result of `datetime.utcnow().strftime("%Y%m%d%H%M%S")`.
   """
-  job = retr.SyncRetr(verbose=verbose, job_id=job_id)
+  job = SyncRetr(verbose=verbose)
   job.execute()
+
+
+def validate_month(ctx, param, value):
+  if re.match(r"^\d{6}$", value):
+    return value
+  raise click.BadArgumentUsage(
+    f"Format of {param.name.upper()} must be YYYYMM (e.g. 202205)",
+    ctx
+  )
+
+@retr.command()
+@click.option(
+  "-o",
+  "--output",
+  type=click.Path(exists=False, resolve_path=True),
+  help="""Filepath to where a directory for storing artifacts should be created.
+          If none is provided, artifacts will be stored at 'os.getcwd()/month_{MONTH}'"""
+)
+@click.option("-v", "--verbose", **VERBOSE_OPTION_KWARGS)
+@click.argument("month", callback=validate_month)
+def download_month(output, verbose, month):
+  """
+  Download data for MONTH
+
+  MONTH should be formatted as YYYYMM (e.g. 202007 would download all Real 
+  Estate Transfer Return data recorded in the month of July in the year 2020).
+  """
+  print(output, verbose, month)
+
+
+@retr.command()
+@click.option("-v", "--verbose", **VERBOSE_OPTION_KWARGS)
+def copy_csv_to_db(vervise):
+  """
+  Copy a CSV file located at FILEPATH to the database.
+
+  The CSV file columns and data types must conform to the constraints of the Postgres table `wild.retr`.
+  """

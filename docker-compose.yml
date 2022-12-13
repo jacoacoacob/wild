@@ -1,13 +1,13 @@
 version: '3.9'
 
 services:
-  database:
+  db:
     image: postgres
     restart: unless-stopped
     environment:
       - POSTGRES_PASSWORD=postgres
     volumes:
-      - ./data:/var/lib/postgresql/data
+      - wild_db_data:/var/lib/postgresql/data
     ports:
       - 5436:5432
   sqitch:
@@ -17,4 +17,4 @@ services:
       - ./config:/home
 
 volumes:
-  fmc_db_data:
+  wild_db_data:

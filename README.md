@@ -21,7 +21,7 @@ From the project root, execute the following commands to setup a postgres databa
 
 1. Spin up a postgres docker container
     ```
-    $ docker compose up -d database
+    $ docker compose up -d db
     ```
 
 2. Run the migrations defined in [./schema](./schema/)
@@ -31,7 +31,7 @@ From the project root, execute the following commands to setup a postgres databa
 
 3. Connect to our database as *postgres* and setup a user for [`data_bot`](#using-data_bot) to connect with
     ```
-    $ docker compose exec database psql -U postgres
+    $ docker compose exec db psql -U postgres
 
     postgres=# CREATE ROLE data_bot WITH LOGIN PASSWORD 's00prs3crt';
     postgres=# GRANT readwrite TO data_bot;

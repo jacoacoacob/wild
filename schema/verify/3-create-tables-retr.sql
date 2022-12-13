@@ -1,4 +1,4 @@
--- Verify fmc-db:3-create-tables-retr on pg
+-- Verify wild-db:3-create-tables-retr on pg
 
 BEGIN;
 

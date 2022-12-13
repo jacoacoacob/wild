@@ -1,12 +1,12 @@
--- Deploy fmc-db:3-create-tables-retr to pg
--- requires: 1-create-schema-fmc
+-- Deploy wild-db:3-create-tables-retr to pg
+-- requires: 1-create-schema-wild
 
 BEGIN;
 
 -- XXX Add DDLs here.
 
 
-CREATE TABLE IF NOT EXISTS fmc.retr (
+CREATE TABLE IF NOT EXISTS wild.retr (
     sale_number TEXT PRIMARY KEY,
     year_captured TEXT,
     grantor_type SMALLINT,
@@ -98,85 +98,85 @@ CREATE TABLE IF NOT EXISTS fmc.retr (
     water_front_feet SMALLINT
 );
 
-COMMENT ON TABLE fmc.retr IS 'RETR (Real Estate Transfer Return) data available from https://www.revenue.wi.gov/Pages/ERETR/data-home.aspx#hist';
+COMMENT ON TABLE wild.retr IS 'RETR (Real Estate Transfer Return) data available from https://www.revenue.wi.gov/Pages/ERETR/data-home.aspx#hist';
 
-CREATE TABLE IF NOT EXISTS fmc.retr_yes_no (
+CREATE TABLE IF NOT EXISTS wild.retr_yes_no (
     id SMALLINT PRIMARY KEY,
     value TEXT
 );
 
-CREATE TABLE IF NOT EXISTS fmc.retr_grantor_type (
+CREATE TABLE IF NOT EXISTS wild.retr_grantor_type (
     id SMALLINT PRIMARY KEY,
     value TEXT
 );
 
-CREATE TABLE IF NOT EXISTS fmc.retr_grantor_grantee_relation (
+CREATE TABLE IF NOT EXISTS wild.retr_grantor_grantee_relation (
     id SMALLINT PRIMARY KEY,
     value TEXT
 );
 
-CREATE TABLE IF NOT EXISTS fmc.retr_energy_exclusion (
+CREATE TABLE IF NOT EXISTS wild.retr_energy_exclusion (
     id SMALLINT PRIMARY KEY,
     value TEXT
 );
 
-CREATE TABLE IF NOT EXISTS fmc.retr_property_type (
+CREATE TABLE IF NOT EXISTS wild.retr_property_type (
     id SMALLINT PRIMARY KEY,
     value TEXT
 );
 
-CREATE TABLE IF NOT EXISTS fmc.retr_predominate_use (
+CREATE TABLE IF NOT EXISTS wild.retr_predominate_use (
     id SMALLINT PRIMARY KEY,
     value TEXT
 );
 
-CREATE TABLE IF NOT EXISTS fmc.retr_transfer_type (
+CREATE TABLE IF NOT EXISTS wild.retr_transfer_type (
     id SMALLINT PRIMARY KEY,
     value TEXT
 );
 
-CREATE TABLE IF NOT EXISTS fmc.retr_owner_interest_transferred (
+CREATE TABLE IF NOT EXISTS wild.retr_owner_interest_transferred (
     id SMALLINT PRIMARY KEY,
     value TEXT
 );
 
-CREATE TABLE IF NOT EXISTS fmc.retr_grantor_rights_retained (
+CREATE TABLE IF NOT EXISTS wild.retr_grantor_rights_retained (
     id SMALLINT PRIMARY KEY,
     value TEXT
 );
 
-CREATE TABLE IF NOT EXISTS fmc.retr_transfer_exemption_number (
+CREATE TABLE IF NOT EXISTS wild.retr_transfer_exemption_number (
     id TEXT PRIMARY KEY,
     value TEXT
 );
 
-CREATE TABLE IF NOT EXISTS fmc.retr_financing_code (
+CREATE TABLE IF NOT EXISTS wild.retr_financing_code (
     id SMALLINT PRIMARY KEY,
     value TEXT
 );
 
-CREATE TABLE IF NOT EXISTS fmc.retr_conveyance_code (
+CREATE TABLE IF NOT EXISTS wild.retr_conveyance_code (
     id SMALLINT PRIMARY KEY,
     value TEXT
 );
 
-CREATE TABLE IF NOT EXISTS fmc.retr_agent_for (
+CREATE TABLE IF NOT EXISTS wild.retr_agent_for (
     id TEXT PRIMARY KEY,
     value TEXT
 );
 
 
-INSERT INTO fmc.retr_yes_no VALUES
+INSERT INTO wild.retr_yes_no VALUES
     (1, 'Yes'),
     (2, 'No');
 
-INSERT INTO fmc.retr_grantor_type VALUES
+INSERT INTO wild.retr_grantor_type VALUES
     (1, 'Individual'),
     (2, 'Partnership'),
     (3, 'Corporation'),
     (4, 'Limited liability co, trust, other');
 
-INSERT INTO fmc.retr_grantor_grantee_relation VALUES
+INSERT INTO wild.retr_grantor_grantee_relation VALUES
     (1, 'None'),
     (2, 'Financial'),
     (3, 'Partnership'),
@@ -184,7 +184,7 @@ INSERT INTO fmc.retr_grantor_grantee_relation VALUES
     (5, 'Corp-sharehold-subsidiary'),
     (6, 'Other');
 
-INSERT INTO fmc.retr_energy_exclusion VALUES
+INSERT INTO wild.retr_energy_exclusion VALUES
     (0, 'Other'),
     (1, 'Owner Occupancy'),
     (2, 'Transfer Fee Exempt'),
@@ -199,13 +199,13 @@ INSERT INTO fmc.retr_energy_exclusion VALUES
     (12, 'Pre-Existing Certificate of Compliance'),
     (13, 'Condo Exclusion');
 
-INSERT INTO fmc.retr_property_type VALUES
+INSERT INTO wild.retr_property_type VALUES
     (1, 'Land Only'),
     (2, 'Land & Buildings'),
     (3, 'Condominium'),
     (4, 'Other');
 
-INSERT INTO fmc.retr_predominate_use VALUES
+INSERT INTO wild.retr_predominate_use VALUES
     (1, 'Res Single family, (multi=<3), time share'),
     (2, 'Commercial & multi=>4'),
     (3, 'Mfg & telco'),
@@ -214,25 +214,25 @@ INSERT INTO fmc.retr_predominate_use VALUES
     (6, 'Forest Land'),
     (7, 'Other (property classification for tax assessment completed by Co. or Local Official)');
 
-INSERT INTO fmc.retr_transfer_type VALUES
+INSERT INTO wild.retr_transfer_type VALUES
     (1, 'Original sale'),
     (2, 'Gift'),
     (3, 'Exchange'),
     (4, 'Deed in satisfaction of land contract'),
     (5, 'Other');
 
-INSERT INTO fmc.retr_owner_interest_transferred VALUES
+INSERT INTO wild.retr_owner_interest_transferred VALUES
     (1, 'Full'),
     (2, 'Partial'),
     (3, 'Other');
 
-INSERT INTO fmc.retr_grantor_rights_retained VALUES
+INSERT INTO wild.retr_grantor_rights_retained VALUES
     (1, 'None'),
     (2, 'Life estate'),
     (3, 'Easement'),
     (4, 'Other');
 
-INSERT INTO fmc.retr_transfer_exemption_number VALUES
+INSERT INTO wild.retr_transfer_exemption_number VALUES
     ('1', 'Prior to the effective date of this subchapter (October 1, 1969)'),
     ('2', 'From the United States or from this state or from any instrumentality, agency or subdivision of either'),
     ('2G', 'By gift, to the United States or to this state or to any instrumentality, agency or subdivision of either'),
@@ -265,7 +265,7 @@ INSERT INTO fmc.retr_transfer_exemption_number VALUES
     ('20', 'Made under state law ( s ec .184.15, W is . Stats . )'),
     ('21', 'Of transmission facilities or land rights to the transmission company, as defined in state law sec. 196.485(1)(ge), sec. 196.485(5)(b) or (c) or (6)(a)1, Wis. Stats.), in as defined in sec. 196.485(1)(fe), Wis. Stats');
 
-INSERT INTO fmc.retr_financing_code VALUES
+INSERT INTO wild.retr_financing_code VALUES
     (1, 'Financial Institution-Conventional'),
     (2, 'Financial Institution- Gov.'),
     (3, 'Obtained From Seller'),
@@ -273,13 +273,13 @@ INSERT INTO fmc.retr_financing_code VALUES
     (5, 'Other 3rd Party Financing'),
     (6, 'No Financing Involved');
 
-INSERT INTO fmc.retr_conveyance_code VALUES
+INSERT INTO wild.retr_conveyance_code VALUES
     (1, 'Warranty Deed'),
     (2, 'Land contract'),
     (3, 'Quit Claim Deed'),
     (4, 'Other');
 
-INSERT INTO fmc.retr_agent_for VALUES
+INSERT INTO wild.retr_agent_for VALUES
     ('R', 'Grantor'),
     ('E', 'Grantee'),
     ('B', 'Both');
@@ -305,8 +305,8 @@ BEGIN
     ]
     LOOP
         EXECUTE FORMAT (
-            'ALTER TABLE fmc.retr ADD CONSTRAINT retr_%I_fkey
-            FOREIGN KEY (%I) REFERENCES fmc.retr_yes_no (id)',
+            'ALTER TABLE wild.retr ADD CONSTRAINT retr_%I_fkey
+            FOREIGN KEY (%I) REFERENCES wild.retr_yes_no (id)',
             colname, colname
         );
     END LOOP;
@@ -327,8 +327,8 @@ BEGIN
     ]
     LOOP
         EXECUTE FORMAT (
-            'ALTER TABLE fmc.retr ADD CONSTRAINT retr_%I_fkey
-            FOREIGN KEY (%I) REFERENCES fmc.retr_%I (id)',
+            'ALTER TABLE wild.retr ADD CONSTRAINT retr_%I_fkey
+            FOREIGN KEY (%I) REFERENCES wild.retr_%I (id)',
             colname, colname, colname
         );
     END LOOP;

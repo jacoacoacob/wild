@@ -1,7 +1,7 @@
 %syntax-version=1.0.0
-%project=fmc-db
-%uri=https://gitlab.com/jacoacoacob/fmc-db
+%project=wild-db
+%uri=https://gitlab.com:m5304/wild
 
-1-create-schema-fmc 2022-12-03T22:22:33Z Jacoacoacob <jacoacoacob@protonmail.com> # Add schema for all fmc objects
-2-create-roles-and-permissions [1-create-schema-fmc] 2022-12-03T22:54:17Z Jacoacoacob <jacoacoacob@protonmail.com> # Creates readonly and readwrite roles
-3-create-tables-retr [1-create-schema-fmc] 2022-12-04T16:14:17Z Jacoacoacob <jacoacoacob@protonmail.com> # Creates tables for WI Department of Revenue 'Real Estate Transfer Data' as found here https://www.revenue.wi.gov/Pages/ERETR/data-home.aspx
+1-create-schema-wild 2022-12-03T22:22:33Z Jacoacoacob <jacoacoacob@protonmail.com> # Add schema for all wild objects
+2-create-roles-and-permissions [1-create-schema-wild] 2022-12-03T22:54:17Z Jacoacoacob <jacoacoacob@protonmail.com> # Creates readonly and readwrite roles
+3-create-tables-retr [1-create-schema-wild] 2022-12-04T16:14:17Z Jacoacoacob <jacoacoacob@protonmail.com> # Creates tables for WI Department of Revenue 'Real Estate Transfer Data' as found here https://www.revenue.wi.gov/Pages/ERETR/data-home.aspx

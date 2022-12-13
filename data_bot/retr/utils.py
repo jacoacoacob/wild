@@ -29,7 +29,7 @@ def select_dates_recorded():
         DATE_PART('year', date_recorded)::TEXT ||
         LPAD(DATE_PART('month', date_recorded)::TEXT, 2, '0') AS date_recorded
     FROM
-      fmc.retr
+      wild.retr
   """
 
 
@@ -150,7 +150,7 @@ def copy_retr_csv_to_database_table(job, csv_loc, csv_filename):
     # cp1250 is encoding used by Windows https://docs.python.org/3.10/library/codecs.html
     with open(os.path.join(csv_loc, csv_filename), "r", encoding="cp1250") as file:
       job.logger.info(f"Copying {csv_filename} to database")
-      copy_csv_to_table(file, "fmc.retr")
+      copy_csv_to_table(file, "wild.retr")
       job.logger.info(f"Copy complete")
   except Exception as exc:
     job.logger.warn(f"{type(exc)} {exc}")

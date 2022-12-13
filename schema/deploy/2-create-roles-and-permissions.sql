@@ -1,5 +1,5 @@
--- Deploy fmc-db:2-create-roles-and-permissions to pg
--- requires: 1-create-schema-fmc
+-- Deploy wild-db:2-create-roles-and-permissions to pg
+-- requires: 1-create-schema-wild
 
 BEGIN;
 
@@ -23,13 +23,13 @@ BEGIN
         current_database()
     );
 
-    GRANT USAGE ON SCHEMA fmc
+    GRANT USAGE ON SCHEMA wild
     TO readonly;
 
-    GRANT SELECT ON ALL TABLES IN SCHEMA fmc
+    GRANT SELECT ON ALL TABLES IN SCHEMA wild
     TO readonly;
 
-    ALTER DEFAULT PRIVILEGES IN SCHEMA fmc
+    ALTER DEFAULT PRIVILEGES IN SCHEMA wild
     GRANT SELECT ON TABLES
     TO readonly;
 
@@ -42,17 +42,17 @@ BEGIN
         current_database()
     );
 
-    GRANT USAGE ON SCHEMA fmc
+    GRANT USAGE ON SCHEMA wild
     TO readwrite;
 
-    GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA fmc
+    GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA wild
     TO readwrite;
 
-    ALTER DEFAULT PRIVILEGES IN SCHEMA fmc
+    ALTER DEFAULT PRIVILEGES IN SCHEMA wild
     GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES
     TO readwrite;
 
-    ALTER DEFAULT PRIVILEGES IN SCHEMA fmc
+    ALTER DEFAULT PRIVILEGES IN SCHEMA wild
     GRANT USAGE ON SEQUENCES
     TO readwrite;
 

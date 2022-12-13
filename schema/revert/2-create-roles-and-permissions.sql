@@ -1,4 +1,4 @@
--- Revert fmc-db:2-create-roles-and-permissions from pg
+-- Revert wild-db:2-create-roles-and-permissions from pg
 
 BEGIN;
 
@@ -19,13 +19,13 @@ BEGIN
         current_database()
     );
 
-    REVOKE USAGE ON SCHEMA fmc
+    REVOKE USAGE ON SCHEMA wild
     FROM readonly;
 
-    REVOKE SELECT ON ALL TABLES IN SCHEMA fmc
+    REVOKE SELECT ON ALL TABLES IN SCHEMA wild
     FROM readonly;
 
-    ALTER DEFAULT PRIVILEGES IN SCHEMA fmc
+    ALTER DEFAULT PRIVILEGES IN SCHEMA wild
     REVOKE SELECT ON TABLES
     FROM readonly;
 
@@ -38,17 +38,17 @@ BEGIN
         current_database()
     );
 
-    REVOKE USAGE ON SCHEMA fmc
+    REVOKE USAGE ON SCHEMA wild
     FROM readwrite;
 
-    REVOKE SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA fmc
+    REVOKE SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA wild
     FROM readwrite;
 
-    ALTER DEFAULT PRIVILEGES IN SCHEMA fmc
+    ALTER DEFAULT PRIVILEGES IN SCHEMA wild
     REVOKE SELECT, INSERT, UPDATE, DELETE ON TABLES
     FROM readwrite;
 
-    ALTER DEFAULT PRIVILEGES IN SCHEMA fmc
+    ALTER DEFAULT PRIVILEGES IN SCHEMA wild
     REVOKE USAGE ON SEQUENCES
     FROM readwrite;
 

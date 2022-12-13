@@ -29,9 +29,9 @@ class SyncRetr(Job):
     self.clean_loc = clean_loc
 
   def execute(self, *args, **kwargs):
-    # self.download_csv_zip_files()
-    # self.unpack_csv_data()
-    # self.clean_csv_data()
+    self.download_csv_zip_files()
+    self.unpack_csv_data()
+    self.clean_csv_data()
     self.copy_cleaned_data_to_database()
 
   @stage
@@ -41,7 +41,9 @@ class SyncRetr(Job):
 
   @stage
   def unpack_csv_data(self):
-    for filename in os.listdir(self.zip_loc):
+    filenames = os.listdir(self.zip_loc)
+    for index, filename in enumerate(filenames):
+      self.logger.info(f"{index + 1} of {len(filenames)}")
       retr_utils.unpack_retr_csv(
         self,
         filename,
@@ -51,12 +53,16 @@ class SyncRetr(Job):
 
   @stage
   def clean_csv_data(self):
-    for file in os.listdir(self.raw_loc):
-      retr_utils.clean_retr_csv(self, file, self.raw_loc, self.clean_loc)
+    filenames = os.listdir(self.raw_loc)
+    for index, filename in enumerate(filenames):
+      self.logger.info(f"{index + 1} of {len(filenames)}")
+      retr_utils.clean_retr_csv(self, filename, self.raw_loc, self.clean_loc)
 
   @stage
   def copy_cleaned_data_to_database(self):
-    for filename in os.listdir(self.clean_loc):
+    filenames = os.listdir(self.clean_loc)
+    for index, filename in enumerate(filenames):
+      self.logger.info(f"{index + 1} of {len(filenames)}")
       retr_utils.copy_retr_csv_to_database_table(
         self,
         self.clean_loc,

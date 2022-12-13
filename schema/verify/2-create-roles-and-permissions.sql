@@ -1,4 +1,4 @@
--- Verify fmc-db:2-create-roles-and-permissions on pg
+-- Verify wild-db:2-create-roles-and-permissions on pg
 
 BEGIN;
 
@@ -9,12 +9,12 @@ CREATE TABLE public.out_of_bounds (word TEXT);
 INSERT INTO public.out_of_bounds (word)
 VALUES ('No way, bud');
 
-CREATE TABLE fmc.game_on (
+CREATE TABLE wild.game_on (
     id SERIAL PRIMARY KEY,
     word TEXT
 );
 
-INSERT INTO fmc.game_on (word)
+INSERT INTO wild.game_on (word)
 VALUES ('Lets go!');
 
 DO $$
@@ -39,18 +39,18 @@ BEGIN
     END;
 
     BEGIN
-        CREATE TABLE fmc.cani (dothis boolean);
-        RAISE EXCEPTION 'Should not be able to create tables in schema "fmc"';
+        CREATE TABLE wild.cani (dothis boolean);
+        RAISE EXCEPTION 'Should not be able to create tables in schema "wild"';
         EXCEPTION WHEN insufficient_privilege THEN
     END;
 
     BEGIN
-        DROP TABLE fmc.game_on;
-        RAISE EXCEPTION 'Role "readonly" Should not be able to drop tables in schema "fmc"';
+        DROP TABLE wild.game_on;
+        RAISE EXCEPTION 'Role "readonly" Should not be able to drop tables in schema "wild"';
         EXCEPTION WHEN insufficient_privilege THEN
     END;
 
-    ASSERT (SELECT COUNT(*) FROM fmc.game_on) = 1;
+    ASSERT (SELECT COUNT(*) FROM wild.game_on) = 1;
 
 
 
@@ -70,23 +70,23 @@ BEGIN
     END;
 
     BEGIN
-      CREATE TABLE fmc.candothis (yes BOOLEAN);
-      RAISE EXCEPTION 'Role "readwrite" should not be able to create tables in schema "fmc"';
+      CREATE TABLE wild.candothis (yes BOOLEAN);
+      RAISE EXCEPTION 'Role "readwrite" should not be able to create tables in schema "wild"';
       EXCEPTION WHEN insufficient_privilege THEN
     END;
 
-    INSERT INTO fmc.game_on (word) VALUES ('i can do this');
+    INSERT INTO wild.game_on (word) VALUES ('i can do this');
 
-    ASSERT (SELECT COUNT(*) FROM fmc.game_on) = 2;
-    ASSERT (SELECT word FROM fmc.game_on WHERE id = 2) = 'i can do this';
+    ASSERT (SELECT COUNT(*) FROM wild.game_on) = 2;
+    ASSERT (SELECT word FROM wild.game_on WHERE id = 2) = 'i can do this';
 
-    UPDATE fmc.game_on SET word = 'now it is this' WHERE id = 2;
+    UPDATE wild.game_on SET word = 'now it is this' WHERE id = 2;
 
-    ASSERT (SELECT word FROM fmc.game_on WHERE id = 2) = 'now it is this';
+    ASSERT (SELECT word FROM wild.game_on WHERE id = 2) = 'now it is this';
 
-    DELETE FROM fmc.game_on WHERE id = 2;
+    DELETE FROM wild.game_on WHERE id = 2;
 
-    ASSERT (SELECT COUNT(*) FROM fmc.game_on) = 1;
+    ASSERT (SELECT COUNT(*) FROM wild.game_on) = 1;
 
 END $$;
 
