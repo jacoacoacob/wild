@@ -11,8 +11,9 @@ def cli():
 @cli.group()
 def retr():
   """
-  Commands for interacting with RETR data
+  Commands for interacting with Real Estate Transaction Return (RETR) data
   """
+
 
 @retr.command()
 @click.option(
@@ -38,8 +39,6 @@ def sync(verbose, job_id):
   If JOB_ARTIFACTS_ROOT is not defined, artifacts will use 'jobs'. Artifacts 
   will be output to the path JOB_ARTIFACTS_ROOT/<job_id> where `<job_id>` is
   a the result of `datetime.utcnow().strftime("%Y%m%d%H%M%S")`.
-
-
   """
   job = retr.SyncRetr(verbose=verbose, job_id=job_id)
   job.execute()
