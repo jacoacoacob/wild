@@ -38,14 +38,14 @@ class SyncRetr(Job):
   def download_csv_zip_files(self):
     urls = retr_utils.get_urls_to_fetch(self)
     for index, url in enumerate(urls):
-      print(f"{index + 1} of {len(urls)}")
+      self.logger.info(f"{index + 1} of {len(urls)}")
       retr_utils.download_retr_csv_zip(self, url, self.zip_loc)
 
   @stage
   def unpack_csv_data(self):
     filenames = os.listdir(self.zip_loc)
     for index, filename in enumerate(filenames):
-      print(f"{index + 1} of {len(filenames)}")
+      self.logger.info(f"{index + 1} of {len(filenames)}")
       retr_utils.unpack_retr_csv(
         self,
         filename,
@@ -57,14 +57,14 @@ class SyncRetr(Job):
   def clean_csv_data(self):
     filenames = os.listdir(self.raw_loc)
     for index, filename in enumerate(filenames):
-      print(f"{index + 1} of {len(filenames)}")
+      self.logger.info(f"{index + 1} of {len(filenames)}")
       retr_utils.clean_retr_csv(self, filename, self.raw_loc, self.clean_loc)
 
   @stage
   def copy_cleaned_data_to_database(self):
     filenames = os.listdir(self.clean_loc)
     for index, filename in enumerate(filenames):
-      print(f"{index + 1} of {len(filenames)}")
+      self.logger.info(f"{index + 1} of {len(filenames)}")
       retr_utils.copy_retr_csv_to_database_table(
         self,
         self.clean_loc,
