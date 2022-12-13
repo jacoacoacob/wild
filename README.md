@@ -95,5 +95,5 @@ Options:
   --help  Show this message and exit.
 
 Commands:
-  sync-retr
+  retr  Commands for interacting with Real Estate Transaction Return...
 ```
