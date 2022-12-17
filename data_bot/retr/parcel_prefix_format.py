@@ -2,7 +2,7 @@
 Generate a postgres INSERT statement to seed wild.retr_municipality_parcel_format
 """
 import re
-import os
+import json
 from typing import List
 
 import requests
@@ -39,30 +39,35 @@ def get_municipality_name(tr: Tag):
   return td.text.upper()
 
 
+def count_leading_zeros(value: str):
+  return len(re.search(r"(^0*)", value).group())
+
+
 def get_municipality_prefix(tr: Tag):
   parts = []
   td = tr.find("td", attrs={ "data-title": "Prefix" })
   if td:
     for part in re.split(r"\s*or\s*|,", td.text):
-      range_match = re.match(r"([\w-]+)\s+(through|thru)\s+([\w-]+)", part)
+      range_match = re.match(r"([\w-]+)\s+(through|thru|-)\s+([\w-]+)", part)
       if range_match:
-        print(range_match.groups())
-        start, _, end = range_match.groups()
+        start_str, _, end_str = range_match.groups()
+        suffix = re.search(r"[^\d]+$", start_str)
+        suffix = suffix.group() if suffix else ""
+        max_len = max(
+          len(start_str) - count_leading_zeros(start_str),
+          len(end_str) - count_leading_zeros(end_str),
+        )
         try:
-          start_num = int(re.sub(r"[^\d]", "", start))
-          end_num = int(re.sub(r"[^\d]", "", end))
-          
-          print((start_num, end_num))
+          start_num = int(re.sub(r"[^\d]", "", start_str))
+          end_num = int(re.sub(r"[^\d]", "", end_str))
+          for num in range(start_num, end_num + 1):
+            value = f"{num}{suffix}" if suffix else f"{num}"
+            parts.append(value.zfill(max_len))
         except Exception as exc:
           print(f"[get_municipality_prefix] {type(exc).__name__}", exc)
-        parts.append(part)
       else:
-        parts.append(part)
+        parts += [x.strip() for x in part.split(" ") if len(x.strip())]
   return parts
-
-
-
-  
 
 
 def get_municipalities(panel: Tag):
@@ -71,21 +76,19 @@ def get_municipalities(panel: Tag):
     rv.append({
       "name": get_municipality_name(tr),
       "prefix": get_municipality_prefix(tr),
-      # "example": example
     })
   return rv
 
 
-def generate_sql(county_name, municipalities):
+def get_sql_values(county_name, municipalities):
   rv = []
   for muni in municipalities:
     muni_name = muni.get("name")
-    muni_prefixes = f"ARRAY{muni.get('prefix')}"
-    muni_examples = f"ARRAY{muni.get('example', [])}"
+    muni_prefixes = muni.get("prefix")
     rv.append(
-      f"('{muni_name}', '{county_name}', {muni_prefixes}, {muni_examples})"
+      f"('{muni_name}', '{county_name}', ARRAY{muni_prefixes})"
     )
-  return ",\n".join(rv)
+  return rv
 
 
 def write_sql(sql):
@@ -97,10 +100,15 @@ def get_parcel_prefix_format():
   parcel_prefix_format_html = fetch_parcel_prefix_format_html()
   soup = BeautifulSoup(parcel_prefix_format_html, "html.parser")
   panel_tags: List[Tag] = get_panel_tags(soup)
-  sql = ""
+  sql = """
+INSERT INTO wild.retr_municipality_parcel_format
+  (id, county_name, prefix)
+VALUES\n  """
+  values = []
   for panel in panel_tags:
     county_name = get_county_name(panel)
     municipalities = get_municipalities(panel)
-    sql += generate_sql(county_name, municipalities)
+    values += get_sql_values(county_name, municipalities)
+  sql += ",\n  ".join(values) + ";"
   write_sql(sql)
 
