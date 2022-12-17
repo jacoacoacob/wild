@@ -2,7 +2,7 @@ import re
 
 import click
 
-from .retr import SyncRetr
+from .retr import SyncRetr, get_parcel_prefix_format
 
 
 @click.group()
@@ -86,3 +86,8 @@ def copy_csv_to_db(vervise):
 
   The CSV file columns and data types must conform to the constraints of the Postgres table `wild.retr`.
   """
+
+
+@retr.command()
+def parcel_prefix_format():
+  get_parcel_prefix_format()

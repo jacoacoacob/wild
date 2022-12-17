@@ -5,3 +5,4 @@
 1-create-schema-wild 2022-12-03T22:22:33Z Jacoacoacob <jacoacoacob@protonmail.com> # Add schema for all wild objects
 2-create-roles-and-permissions [1-create-schema-wild] 2022-12-03T22:54:17Z Jacoacoacob <jacoacoacob@protonmail.com> # Creates readonly and readwrite roles
 3-create-tables-retr [1-create-schema-wild] 2022-12-04T16:14:17Z Jacoacoacob <jacoacoacob@protonmail.com> # Creates tables for WI Department of Revenue 'Real Estate Transfer Data' as found here https://www.revenue.wi.gov/Pages/ERETR/data-home.aspx
+4-create-table-retr-municipality-parcel-format [3-create-tables-retr] 2022-12-14T22:45:07Z Jacoacoacob <jacoacoacob@protonmail.com> # Adds table to map wild.retr.parcel_identification prefix to county and town/village/city name

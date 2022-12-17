@@ -18,7 +18,7 @@ def retr_date_to_postgres_date(job, row, column, row_number):
       d = datetime.strftime(d, "%Y-%m-%d")
       return d
     except Exception as exc:
-      job.logger.warn(f"{column} {row_number} {type(exc)} {exc}")
+      job.logger.warn(f"{column} {row_number} {type(exc)} {exc}. Returning `None`.")
   
 
 @query(fetch="all")
