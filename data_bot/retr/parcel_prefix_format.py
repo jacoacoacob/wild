@@ -9,6 +9,10 @@ import requests
 from bs4 import BeautifulSoup, Tag
 
 
+def count_leading_zeros(value: str):
+  return len(re.search(r"(^0*)", value).group())
+
+
 def fetch_parcel_prefix_format_html():
   # # PROD
   # response = requests.get("https://www.revenue.wi.gov/Pages/UST/parcels.aspx")
@@ -35,8 +39,8 @@ def get_county_name(panel: Tag):
 
 
 def get_municipality_name(tr: Tag):
-  td = tr.find("td", attrs={ "data-title": "Muni" })
-  return td.text.upper()
+  td, _, _ = tr.find_all("td")
+  return re.sub(r"[\t]", " ", td.text.upper())
 
 
 def count_leading_zeros(value: str):
@@ -45,7 +49,7 @@ def count_leading_zeros(value: str):
 
 def get_municipality_prefix(tr: Tag):
   parts = []
-  td = tr.find("td", attrs={ "data-title": "Prefix" })
+  _, td, _ = tr.find_all("td")
   if td:
     for part in re.split(r"\s*or\s*|,", td.text):
       range_match = re.match(r"([\w-]+)\s+(through|thru|-)\s+([\w-]+)", part)
@@ -68,6 +72,7 @@ def get_municipality_prefix(tr: Tag):
       else:
         parts += [x.strip() for x in part.split(" ") if len(x.strip())]
   return parts
+  # return [re.sub(r"[\W\t]", "", part) for part in parts]
 
 
 def get_municipalities(panel: Tag):
@@ -102,13 +107,13 @@ def get_parcel_prefix_format():
   panel_tags: List[Tag] = get_panel_tags(soup)
   sql = """
 INSERT INTO wild.retr_municipality_parcel_format
-  (id, county_name, prefix)
+  (tvc_name, county_name, prefix)
 VALUES\n  """
   values = []
   for panel in panel_tags:
     county_name = get_county_name(panel)
     municipalities = get_municipalities(panel)
     values += get_sql_values(county_name, municipalities)
-  sql += ",\n  ".join(values) + ";"
+  sql += ",\n  ".join(list(set(values))) + ";"
   write_sql(sql)
 
