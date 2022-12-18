@@ -40,7 +40,10 @@ def get_county_name(panel: Tag):
 
 def get_municipality_name(tr: Tag):
   td, _, _ = tr.find_all("td")
-  return re.sub(r"[\t]", " ", td.text.upper())
+  text = td.text.upper()
+  text = re.sub(r"\t", " ", text)
+  text = re.sub(r"\s{2,}", " ", text)
+  return text
 
 
 def count_leading_zeros(value: str):
@@ -72,7 +75,6 @@ def get_municipality_prefix(tr: Tag):
       else:
         parts += [x.strip() for x in part.split(" ") if len(x.strip())]
   return parts
-  # return [re.sub(r"[\W\t]", "", part) for part in parts]
 
 
 def get_municipalities(panel: Tag):
@@ -85,20 +87,66 @@ def get_municipalities(panel: Tag):
   return rv
 
 
-def get_sql_values(county_name, municipalities):
+def get_sql_values(municipalities):
   rv = []
-  for muni in municipalities:
+  viewed = set()
+  for muni in sorted(municipalities, key=lambda muni: muni["county"]):
+    county_name = muni.get("county")
     muni_name = muni.get("name")
     muni_prefixes = muni.get("prefix")
-    rv.append(
-      f"('{muni_name}', '{county_name}', ARRAY{muni_prefixes})"
-    )
+    if (muni_name, county_name) not in viewed:
+      rv.append(
+        f"('{muni_name}', '{county_name}', ARRAY{muni_prefixes})"
+      )
+    viewed.add((muni_name, county_name))
   return rv
 
 
 def write_sql(sql):
   with open("sandbox_parcel_format.sql", "w") as out:
     out.write(sql)
+
+
+def patch(county_name: str, municipalities: List[dict], config: dict):
+  muni_add = config.get("muni_add", {})
+  tvc_replace = config.get("tvc_replace", {})
+  tvc_variant = config.get("tvc_variant", {})
+  if muni_add.get(county_name):
+    for muni_name, muni_prefix in muni_add.get(county_name):
+      municipalities.append({
+        "name": muni_name,
+        "county": county_name,
+        "prefix": muni_prefix,
+      })
+  if tvc_replace.get(county_name):
+    for old, new in tvc_replace.get(county_name, []):
+      municipalities = [
+        { **muni, "name": new } if muni.get("name") == old else muni
+        for muni
+        in municipalities
+      ]
+  if tvc_variant.get(county_name):
+    muni_names = [x.get("name") for x in municipalities if x]
+    for orig_tvc, variant_tvc in tvc_variant.get(county_name, []):
+      try:
+        index_of_orig = muni_names.index(orig_tvc)
+        if index_of_orig is not None:
+          muni = municipalities[index_of_orig]
+          municipalities.append({ **muni, "name": variant_tvc })
+      except:
+        pass
+  for orig_county, variant_county in config.get("county_variant", []):
+    if orig_county == county_name:
+      return patch(variant_county, municipalities, {}) + [
+        { **muni, "county": county_name }
+        for muni
+        in municipalities
+      ]
+  return [
+    { **muni, "county": county_name }
+    for muni
+    in municipalities
+  ]
 
 
 def get_parcel_prefix_format():
@@ -109,11 +157,47 @@ def get_parcel_prefix_format():
 INSERT INTO wild.retr_municipality_parcel_format
   (tvc_name, county_name, prefix)
 VALUES\n  """
-  values = []
+  municipalities = []
   for panel in panel_tags:
-    county_name = get_county_name(panel)
-    municipalities = get_municipalities(panel)
-    values += get_sql_values(county_name, municipalities)
-  sql += ",\n  ".join(list(set(values))) + ";"
+    municipalities += patch(
+      get_county_name(panel),
+      get_municipalities(panel),
+      {
+        "muni_add": {
+          "BROWN": [
+            ("DE PERE, CITY OF", ["ED-", "WD-"])
+          ],
+          "MARATHON": [
+            ("BROKAW, VILLAGE OF", ["106-"])
+          ],
+          "OUTAGAMIE": [
+            ("GREENVILLE, TOWN OF", ["110"]),
+          ],
+        },
+        "tvc_replace": {
+          "CHIPPEWA": [
+            ("LAKE HOLCOMBE,TOWN OF", "LAKE HOLCOMBE, TOWN OF"),
+          ],
+          "DOOR": [
+            ("JACKSONPOST, TOWN OF", "JACKSONPORT, TOWN OF"),
+          ]
+        },
+        "tvc_variant": {
+          "FOND DU LAC": [
+            ("NORTH FOND DU LAC, VILLAGE OF", "NORTH FOND DU LAC, VILLAGE"),
+          ],
+          "KENOSHA": [
+            ("PLEASANT PRAIRIE, VILLAGE OF", "PLEASANT PRAIRIE, VILLAGE"),
+          ],
+          "WAUKESHA": [
+            ("MENOMONEE FALLS, VILLAGE OF", "MENOMONEE FALLS, VILLAGE O"),
+          ],
+        },
+        "county_variant": [
+          ("SAINT CROIX", "ST. CROIX")
+        ]
+      }
+    )
+  sql += ",\n  ".join(get_sql_values(municipalities)) + ";"
   write_sql(sql)
 
