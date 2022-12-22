@@ -36,7 +36,7 @@ def get_sql_values(municipalities):
   return rv
 
 
-def write_sql(sql):
+def DANGEROUSLY_DESTRUCTIVELY_WRITE_SQL(sql):
   tmpl_path = "sandbox_4-table-parcel-prefix-format.template.txt"
   out_path = "schema/deploy/4-create-table-retr-municipality-parcel-format.sql"
   with open(tmpl_path) as tmpl_file:
@@ -151,5 +151,5 @@ VALUES\n  """
       }
     )
   sql += ",\n  ".join(get_sql_values(municipalities)) + ";"
-  write_sql(sql)
+  DANGEROUSLY_DESTRUCTIVELY_WRITE_SQL(sql)
 
