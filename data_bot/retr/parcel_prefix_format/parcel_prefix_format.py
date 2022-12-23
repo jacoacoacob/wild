@@ -33,7 +33,6 @@ def get_sql_values(munis: List[Muni]):
   return ",\n  ".join(values)
 
 
-
 def DANGEROUSLY_DESTRUCTIVELY_WRITE_SQL(sql):
   tmpl_path = "sandbox_4-table-parcel-prefix-format.template.txt"
   out_path = "schema/deploy/4-create-table-retr-municipality-parcel-format.sql"
@@ -66,9 +65,9 @@ def get_municipalities(soup: BeautifulSoup):
       "OUTAGAMIE": [
         ("GREENVILLE, TOWN OF", ["110"]),
       ],
-      # "OZAUKEE": [
-      #   ()
-      # ],
+      "RACINE": [
+        ("YORKVILLE, TOWN OF", ["018-"])
+      ],
       "WAUKESHA": [
         ("WAUKESHA, TOWN OF", ["WAKT"]),
       ],
@@ -83,6 +82,18 @@ def get_municipalities(soup: BeautifulSoup):
       "MARINETTE": [
         ("NAGARA, CITY OF", "NIAGARA, CITY OF"),
       ],
+      "OUTAGAMIE": [
+        ("KAUKAUNA,TOWN OF", "KAUKAUNA, TOWN OF"),
+      ]
+    },
+    "tvc_replace_many": {
+      "OZAUKEE": [
+        (
+          ("GRAFTON, TOWN OF (RANGE 21)", "GRAFTON, TOWN OF (RANGE 22)"),
+          "GRAFTON, TOWN OF",
+          ("05-", "06-")
+        )
+      ]
     },
     "tvc_variant": {
       "FOND DU LAC": [
@@ -90,6 +101,9 @@ def get_municipalities(soup: BeautifulSoup):
       ],
       "KENOSHA": [
         ("PLEASANT PRAIRIE, VILLAGE OF", "PLEASANT PRAIRIE, VILLAGE"),
+      ],
+      "PORTAGE": [
+        ("AMHERST JUNCTION, VILLAGE OF", "AMHERST JUNCTION, VILLAGE"),
       ],
       "WAUKESHA": [
         ("MENOMONEE FALLS, VILLAGE OF", "MENOMONEE FALLS, VILLAGE O"),

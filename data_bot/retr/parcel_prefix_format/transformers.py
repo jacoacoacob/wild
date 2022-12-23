@@ -5,7 +5,7 @@ class Muni:
   def __init__(self, county, tvc, prefixes=[]) -> None:
     self.county: str = county
     self.tvc: str = tvc
-    self.prefixes: List[str] = prefixes
+    self.prefixes: List[str] = list(prefixes)
 
   def is_county_tvc(self, county, tvc):
     return self.county == county and self.tvc == tvc
