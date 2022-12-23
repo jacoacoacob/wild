@@ -8,8 +8,8 @@ from typing import List
 import requests
 from bs4 import BeautifulSoup, Tag
 
-from .parsers import get_county_name, get_municipalities, get_panel_tags
-from .transformers import Muni, muni_add, tvc_replace, tvc_replace_many
+from .parsers import get_county, get_tvc_and_prefix, get_panel_tags
+from .transformers import Muni, Municipalities
 
 
 def fetch_parcel_prefix_format_html():
@@ -21,19 +21,12 @@ def fetch_parcel_prefix_format_html():
     return html.read()
 
 
-def get_sql_values(municipalities):
-  rv = []
-  viewed = set()
-  for muni in sorted(municipalities, key=lambda muni: muni["county"]):
-    county_name = muni.get("county")
-    muni_name = muni.get("name")
-    muni_prefixes = muni.get("prefix")
-    if (muni_name, county_name) not in viewed:
-      rv.append(
-        f"('{muni_name}', '{county_name}', ARRAY{muni_prefixes})"
-      )
-    viewed.add((muni_name, county_name))
-  return rv
+def get_sql_values(munis: List[Muni]):
+  return ",\n  ".join([
+    f"('{m.tvc}', '{m.county}', ARRAY{m.prefixes})"
+    for m
+    in munis
+  ])
 
 
 def DANGEROUSLY_DESTRUCTIVELY_WRITE_SQL(sql):
@@ -46,110 +39,73 @@ def DANGEROUSLY_DESTRUCTIVELY_WRITE_SQL(sql):
       out_file.write(template)
 
 
-def patch(county_name: str, municipalities: List[dict], config: dict):
-  muni_add = config.get("muni_add", {})
-  tvc_replace = config.get("tvc_replace", {})
-  tvc_variant = config.get("tvc_variant", {})
-  if muni_add.get(county_name):
-    for muni_name, muni_prefix in muni_add.get(county_name):
-      municipalities.append({
-        "name": muni_name,
-        "county": county_name,
-        "prefix": muni_prefix,
-      })
-  if tvc_replace.get(county_name):
-    for old, new in tvc_replace.get(county_name, []):
-      municipalities = [
-        { **muni, "name": new } if muni.get("name") == old else muni
-        for muni
-        in municipalities
-      ]
-  if tvc_variant.get(county_name):
-    muni_names = [x.get("name") for x in municipalities if x]
-    for orig_tvc, variant_tvc in tvc_variant.get(county_name, []):
-      try:
-        index_of_orig = muni_names.index(orig_tvc)
-        if index_of_orig is not None:
-          muni = municipalities[index_of_orig]
-          municipalities.append({ **muni, "name": variant_tvc })
-      except:
-        pass
-  for orig_county, variant_county in config.get("county_variant", []):
-    if orig_county == county_name:
-      return patch(variant_county, municipalities, {}) + [
-        { **muni, "county": county_name }
-        for muni
-        in municipalities
-      ]
-  return [
-    { **muni, "county": county_name }
-    for muni
-    in municipalities
-  ]
+def get_municipalities(soup: BeautifulSoup):
+  munis = Municipalities()
+  panel_tags: List[Tag] = get_panel_tags(soup)
+  for panel in panel_tags:
+    county = get_county(panel)
+    for tvc_prefix_dict in get_tvc_and_prefix(panel):
+      munis.add_muni(county, tvc_prefix_dict["tvc"], tvc_prefix_dict["prefix"])
+  munis.patch({
+    "muni_add": {
+      "BROWN": [
+        ("DE PERE, CITY OF", ["ED-", "WD-"])
+      ],
+      "KENOSHA": [
+        ("SALEM, TOWN OF", ["65-4-120-", "66-4-120-", "67-4-120-"]),
+        ("SILVER LAKE, VILLAGE OF", ["75-4-120-"]),
+      ],
+      "MARATHON": [
+        ("BROKAW, VILLAGE OF", ["106-"])
+      ],
+      "OUTAGAMIE": [
+        ("GREENVILLE, TOWN OF", ["110"]),
+      ],
+      # "OZAUKEE": [
+      #   ()
+      # ],
+      "WAUKESHA": [
+        ("WAUKESHA, TOWN OF", ["WAKT"]),
+      ],
+    },
+    "tvc_replace": {
+      "CHIPPEWA": [
+        ("LAKE HOLCOMBE,TOWN OF", "LAKE HOLCOMBE, TOWN OF"),
+      ],
+      "DOOR": [
+        ("JACKSONPOST, TOWN OF", "JACKSONPORT, TOWN OF"),
+      ],
+      "MARINETTE": [
+        ("NAGARA, CITY OF", "NIAGARA, CITY OF"),
+      ],
+    },
+    "tvc_variant": {
+      "FOND DU LAC": [
+        ("NORTH FOND DU LAC, VILLAGE OF", "NORTH FOND DU LAC, VILLAGE"),
+      ],
+      "KENOSHA": [
+        ("PLEASANT PRAIRIE, VILLAGE OF", "PLEASANT PRAIRIE, VILLAGE"),
+      ],
+      "WAUKESHA": [
+        ("MENOMONEE FALLS, VILLAGE OF", "MENOMONEE FALLS, VILLAGE O"),
+      ],
+    },
+    "county_variant": [
+      ("SAINT CROIX", "ST. CROIX")
+    ]
+  })
+  return munis
 
 
 def get_parcel_prefix_format():
-  parcel_prefix_format_html = fetch_parcel_prefix_format_html()
-  soup = BeautifulSoup(parcel_prefix_format_html, "html.parser")
-  panel_tags: List[Tag] = get_panel_tags(soup)
-  sql = """
+  parcel_prefix_html = fetch_parcel_prefix_format_html()
+  soup = BeautifulSoup(parcel_prefix_html, "html.parser")
+  munis = get_municipalities(soup)
+  sql_values = get_sql_values(munis.data)
+  sql = f"""
 INSERT INTO wild.retr_municipality_parcel_format
   (tvc_name, county_name, prefix)
-VALUES\n  """
-  municipalities = []
-  for panel in panel_tags:
-    municipalities += patch(
-      get_county_name(panel),
-      get_municipalities(panel),
-      {
-        "muni_add": {
-          "BROWN": [
-            ("DE PERE, CITY OF", ["ED-", "WD-"])
-          ],
-          "KENOSHA": [
-            ("SALEM, TOWN OF", ["65-4-120-", "66-4-120-", "67-4-120-"]),
-            ("SILVER LAKE, VILLAGE OF", ["75-4-120-"]),
-          ],
-          "MARATHON": [
-            ("BROKAW, VILLAGE OF", ["106-"])
-          ],
-          "OUTAGAMIE": [
-            ("GREENVILLE, TOWN OF", ["110"]),
-          ],
-          # "OZAUKEE": [
-          #   ()
-          # ],
-          "WAUKESHA": [
-            ("WAUKESHA, TOWN OF", ["WAKT"]),
-          ],
-        },
-        "tvc_replace": {
-          "CHIPPEWA": [
-            ("LAKE HOLCOMBE,TOWN OF", "LAKE HOLCOMBE, TOWN OF"),
-          ],
-          "DOOR": [
-            ("JACKSONPOST, TOWN OF", "JACKSONPORT, TOWN OF"),
-          ],
-          "MARINETTE": [
-            ("NAGARA, CITY OF", "NIAGARA, CITY OF"),
-          ],
-        },
-        "tvc_variant": {
-          "FOND DU LAC": [
-            ("NORTH FOND DU LAC, VILLAGE OF", "NORTH FOND DU LAC, VILLAGE"),
-          ],
-          "KENOSHA": [
-            ("PLEASANT PRAIRIE, VILLAGE OF", "PLEASANT PRAIRIE, VILLAGE"),
-          ],
-          "WAUKESHA": [
-            ("MENOMONEE FALLS, VILLAGE OF", "MENOMONEE FALLS, VILLAGE O"),
-          ],
-        },
-        "county_variant": [
-          ("SAINT CROIX", "ST. CROIX")
-        ]
-      }
-    )
-  sql += ",\n  ".join(get_sql_values(municipalities)) + ";"
+VALUES
+  {sql_values};
+"""
   DANGEROUSLY_DESTRUCTIVELY_WRITE_SQL(sql)
-

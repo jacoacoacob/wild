@@ -7,7 +7,7 @@ def get_panel_tags(soup: BeautifulSoup):
   return soup.find_all("div", class_="panel")
 
 
-def get_county_name(panel: Tag):
+def get_county(panel: Tag):
   panel_title = panel.find("h3", class_="panel-title")
   if not panel_title:
     return ""
@@ -19,7 +19,7 @@ def get_county_name(panel: Tag):
   return text
 
 
-def get_municipality_name(tr: Tag):
+def get_municipality_tvc(tr: Tag):
   td, _, _ = tr.find_all("td")
   text = td.text.upper()
   text = re.sub(r"\t", " ", text)
@@ -58,11 +58,11 @@ def get_municipality_prefix(tr: Tag):
   return parts
 
 
-def get_municipalities(panel: Tag):
+def get_tvc_and_prefix(panel: Tag):
   rv = []
   for tr in panel.select("tbody tr"):
     rv.append({
-      "name": get_municipality_name(tr),
+      "tvc": get_municipality_tvc(tr),
       "prefix": get_municipality_prefix(tr),
     })
   return rv
