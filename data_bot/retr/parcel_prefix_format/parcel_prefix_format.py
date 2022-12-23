@@ -22,11 +22,16 @@ def fetch_parcel_prefix_format_html():
 
 
 def get_sql_values(munis: List[Muni]):
-  return ",\n  ".join([
-    f"('{m.tvc}', '{m.county}', ARRAY{m.prefixes})"
-    for m
-    in munis
-  ])
+  values = []
+  viewed = set()
+  for m in sorted(munis, key=lambda muni: muni.county):
+    if (m.tvc, m.county) not in viewed:
+      values.append(
+        f"('{m.tvc}', '{m.county}', ARRAY{m.prefixes})"
+      )
+    viewed.add((m.tvc, m.county))
+  return ",\n  ".join(values)
+
 
 
 def DANGEROUSLY_DESTRUCTIVELY_WRITE_SQL(sql):
