@@ -1,6 +1,6 @@
 # WILD (WI Landlord Database)
 
-WILD aspires to spotlight legal, temporal, and geographic relationships between residential rental property owners/managers and the properties they control. 
+WILD aims to spotlight legal, temporal, and geographic relationships between big corporate residential rental property owners/managers and the properties they control. 
 The code in this repository is responsible for two broad tasks:
 1. Defining and managing changes to the structure of our [PostgreSQL](https://www.postgresql.org/docs/14/index.html) ("postgres" for short) database that hosts WILD data and makes it queryable.
 2. Automating the work of downloading, cleaning, and putting data from various sources into our postgres database.
@@ -80,6 +80,16 @@ When that's done, you can connect to the database and start poking around!
 ```
 
 ## Modifying the database schema
+
+Database migrations are managed using the official [Sqitch](https://sqitch.org/docs/). The `sqitch` service config in `docker-compose.yml` includes 2 [bind mounts](https://docs.docker.com/storage/bind-mounts/) (using [short syntax](https://docs.docker.com/compose/compose-file/compose-file-v3/#short-syntax-3)) that allow the sqitch container to share necessary config and sql script files with the host machine (your computer).
+
+Refer to the Sqitch [Postgres tutorial](https://sqitch.org/docs/manual/sqitchtutorial/) for more on how to use Sqitch.
+
+To run Sqitch commands, do:
+```bash
+docker compose run --rm sqitch <some sqitch command and its arguments>
+```
+
 
 ## Using `data_bot`
 
