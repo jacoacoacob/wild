@@ -29,7 +29,15 @@ VERBOSE_OPTION_KWARGS = {
 
 @retr.command()
 @click.option("-v", "--verbose", **VERBOSE_OPTION_KWARGS)
-def sync(verbose):
+@click.option(
+  "-r",
+  "--rerun-job",
+  type=str,
+  help="""Provide the ID for a previously executed job to execute it again.
+          You need to specify which stages to execute by providing  or none will be executed"""
+)
+@click.option("-s", "--rerun-stage", multiple=True, )
+def sync(verbose, rerun_job, rerun_stage):
   """
   Synchronize the database with available RETR data.
 
@@ -46,7 +54,11 @@ def sync(verbose):
   will be output to the path JOB_ARTIFACTS_ROOT/<job_id> where `<job_id>` is
   a the result of `datetime.utcnow().strftime("%Y%m%d%H%M%S")`.
   """
-  job = SyncRetr(verbose=verbose)
+  job = SyncRetr(
+    verbose=verbose,
+    rerun_job=rerun_job,
+    rerun_stages=rerun_stage
+  )
   job.execute()
 
 

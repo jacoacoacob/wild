@@ -4,6 +4,7 @@ Return data (https://www.revenue.wi.gov/Pages/ERETR/data-home.aspx) to a
 postgres database.
 """
 import os
+import typing
 
 import dotenv
 
@@ -12,27 +13,50 @@ from . import utils as retr_utils
 
 dotenv.load_dotenv()
   
+RERUN_STAGES = typing.List[typing.Literal[
+  "download_csv_zip_files",
+  "unpack_csv_data",
+  "clean_csv_data",
+  "copy_cleaned_data_to_database",
+]]
 
 class SyncRetr(Job):
-  def __init__(self, rerun_job_id=None, verbose=0) -> None:
-    super().__init__(rerun_job_id, verbose)
+  def __init__(
+    self,
+    rerun_job = None,
+    verbose = 0,
+    rerun_stages: RERUN_STAGES = None
+  ) -> None:
+    super().__init__(rerun_job, verbose)
     zip_loc, raw_loc, clean_loc = [
       os.path.join(self.artifacts_path, dirname)
       for dirname
       in ("zip", "raw", "clean")
     ]
-    if not rerun_job_id:
-      for location in [zip_loc, raw_loc, clean_loc]:
+    if not rerun_job:
+      for location in (zip_loc, raw_loc, clean_loc):
         os.mkdir(location)
+    self.rerun_job = rerun_job
+    self.rerun_stages = rerun_stages
     self.zip_loc = zip_loc
     self.raw_loc = raw_loc
     self.clean_loc = clean_loc
 
   def execute(self, *args, **kwargs):
-    self.download_csv_zip_files()
-    self.unpack_csv_data()
-    self.clean_csv_data()
-    self.copy_cleaned_data_to_database()
+    if self.rerun_job:
+      if "download_csv_zip_files" in self.rerun_stages:
+        self.download_csv_zip_files()
+      if "unpack_csv_data" in self.rerun_stages:
+        self.unpack_csv_data()
+      if "clean_csv_data" in self.rerun_stages:
+        self.clean_csv_data()
+      if "copy_cleaned_data_to_database" in self.rerun_stages:
+        self.copy_cleaned_data_to_database()
+    else:
+      self.download_csv_zip_files()
+      self.unpack_csv_data()
+      self.clean_csv_data()
+      self.copy_cleaned_data_to_database()
 
   @stage
   def download_csv_zip_files(self):
