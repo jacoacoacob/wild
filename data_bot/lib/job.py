@@ -2,7 +2,7 @@ import os
 import logging
 import json
 import functools
-from datetime import datetime
+from datetime import datetime, timezone
 
 from dotenv import load_dotenv
 
@@ -48,20 +48,32 @@ def stage(func):
 
 class Job:
   def __init__(self, rerun_job_id=None, verbose=0) -> None:
-    self.job_id = rerun_job_id or datetime.now(datetime.UTC).strftime("%Y%m%d%H%M%S")
+
+    def create_job_id():
+      job_name = type(self).__name__
+      timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
+      return f"{job_name}_{timestamp}"
+
+    self.job_id = rerun_job_id or create_job_id()
+    
     self.artifacts_path = os.path.abspath(
       os.path.join(JOB_ARTIFACTS_ROOT, self.job_id)
     )
+
     if not rerun_job_id:
       os.makedirs(self.artifacts_path)  
+
     self.logger = logging.getLogger(self.job_id)
     self.logger.setLevel(logging.DEBUG)
+
     ch = logging.StreamHandler()
     ch.setLevel(JOB_VERBOSITY_TO_LOG_LEVEL[verbose])
     ch.setFormatter(job_log_formatter)
+
     fh = logging.FileHandler(os.path.join(self.artifacts_path, "debug.log"))
     fh.setLevel(logging.DEBUG)
     fh.setFormatter(job_log_formatter)
+
     self.logger.addHandler(ch)
     self.logger.addHandler(fh)
 

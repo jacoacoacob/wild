@@ -11,7 +11,7 @@ def unpack_sql_and_params(*args):
   if type(args[0]) is tuple:
     args, = args
   if len(args) == 1:
-    return args[0], []
+    return args[0], ()
   if len(args) == 2:
     return args
   raise ValueError("Expected list of 1 or 2 elements")

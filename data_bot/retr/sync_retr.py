@@ -6,12 +6,8 @@ postgres database.
 import os
 import typing
 
-import dotenv
-
 from ..lib import Job, stage
 from . import utils as retr_utils
-
-dotenv.load_dotenv()
   
 RERUN_STAGES = typing.List[typing.Literal[
   "download_csv_zip_files",

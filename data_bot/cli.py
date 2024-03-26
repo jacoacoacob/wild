@@ -1,8 +1,11 @@
 import re
 
 import click
+import dotenv
 
-from .retr import SyncRetr
+dotenv.load_dotenv()
+
+from .retr import SyncRetr, GeocodeRetr
 
 
 @click.group()
@@ -36,7 +39,7 @@ VERBOSE_OPTION_KWARGS = {
   help="""Provide the ID for a previously executed job to execute it again.
           You need to specify which stages to execute by providing  or none will be executed"""
 )
-@click.option("-s", "--rerun-stage", multiple=True, )
+@click.option("-s", "--rerun-stage", multiple=True)
 def sync(verbose, rerun_job, rerun_stage):
   """
   Synchronize the database with available RETR data.
@@ -98,3 +101,10 @@ def copy_csv_to_db(vervise):
 
   The CSV file columns and data types must conform to the constraints of the Postgres table `wild.retr`.
   """
+
+
+@retr.command()
+@click.option("-v", "--verbose", **VERBOSE_OPTION_KWARGS)
+def geocode(verbose):
+  job = GeocodeRetr(verbose=verbose)
+  job.execute()
