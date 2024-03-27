@@ -1,31 +1,12 @@
-"""
-
-"""
+import os
 
 from ..lib import job, db
 
-
-@db.query(fetch="one")
-def query_addresses():
-  return """
-    WITH addresses AS (
-      SELECT
-        sale_number,
-        TRIM(
-          COALESCE(grantor_street_number::TEXT, '') || ' ' ||
-          grantor_address || ' ' ||
-          grantor_city || ', ' ||
-          grantor_state || ' ' ||
-          grantor_zip
-        ) grantor_address,
-        TRIM(
-        
-        ) grantee_address
-        FROM wild.retr
-    )
-    SELECT * FROM addresses
-  """
-
+@db.query(fetch="all")
+def query_distinct_addresses():
+  sql_file_path = "queries/select_distinct_addresses.sql"
+  with open(os.path.abspath(sql_file_path), "r") as sql_file:
+    return sql_file.read()
 
 class GeocodeRetr(job.Job):
   def __init__(self, rerun_job_id=None, verbose=0) -> None:
@@ -36,4 +17,5 @@ class GeocodeRetr(job.Job):
 
   @job.stage
   def stage_one(self):
-    addresses = query_addresses()
+    addresses = query_distinct_addresses()
+    print(len(addresses))
