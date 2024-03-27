@@ -3,8 +3,8 @@ import os
 from ..lib import job, db
 
 @db.query(fetch="all")
-def query_distinct_addresses():
-  sql_file_path = "queries/select_distinct_addresses.sql"
+def get_addresses_to_geocode():
+  sql_file_path = "queries/addresses_to_geocode.sql"
   with open(os.path.abspath(sql_file_path), "r") as sql_file:
     return sql_file.read()
 
@@ -17,5 +17,5 @@ class GeocodeRetr(job.Job):
 
   @job.stage
   def stage_one(self):
-    addresses = query_distinct_addresses()
-    print(len(addresses))
+    addresses = get_addresses_to_geocode()
+    
